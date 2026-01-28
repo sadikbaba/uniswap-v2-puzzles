@@ -24,12 +24,12 @@ contract ArbitrageTest is Test {
 
         // Deal 0xBeeb with some tokens
         address usdtWhale = 0x5754284f345afc66a98fbB0a0Afe71e0F007B949; // Tether Treasury
-       
-       vm.prank(usdtWhale);
-   (bool success, ) = usdt.call(abi.encodeWithSignature("transfer(address,uint256)", address(0xBeeb), 3_000_000e6));
-    require(success, "USDT transfer failed");
 
-       //   deal(usdt, address(0xBeeb), 3_000_000e6);
+        vm.prank(usdtWhale);
+        (bool success,) = usdt.call(abi.encodeWithSignature("transfer(address,uint256)", address(0xBeeb), 3_000_000e6));
+        require(success, "USDT transfer failed");
+
+        //   deal(usdt, address(0xBeeb), 3_000_000e6);
         deal(weth, address(0xBeeb), 10 ether);
 
         vm.startPrank(address(0xBeeb));
