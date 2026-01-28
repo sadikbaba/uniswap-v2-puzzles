@@ -12,7 +12,8 @@ contract ExactSwapTest is Test {
     address public pool = 0xB4e16d0168e52d35CaCD2c6185b44281Ec28C9Dc;
 
     function setUp() public {
-        vm.rollFork(20055371);
+        vm.createSelectFork("https://eth-mainnet.g.alchemy.com/v2/r1VHZ886XuNYndhbw_FF6", 20055371);
+
 
         exactSwap = new ExactSwap();
 
@@ -33,6 +34,6 @@ contract ExactSwapTest is Test {
         uint256 puzzleBal = IUniswapV2Pair(usdc).balanceOf(address(exactSwap));
 
         require(puzzleBal / 1e6 == 1337, "Puzzle Balance Not 1337 USDC.");
-        require(d / 1e6 == 1337, "Did Not Swap Exact Amount Of WETH.");
+        require(d / 1e6 == 1337 , "Did Not Swap Exact Amount Of WETH.");
     }
 }
