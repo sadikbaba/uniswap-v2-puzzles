@@ -14,11 +14,19 @@ contract BurnLiquid {
      *
      */
     function burnLiquidity(address pool) public {
-        /**
-         *     burn(address to);
-         *
-         *     to: recipient address to receive tokenA and tokenB.
-         */
-        // your code here
+      
+      IUniswapV2Pair pair = IUniswapV2Pair(pool);
+
+
+      uint256 lpBalance = pair.balanceOf(address(this));
+
+
+      pair.approve(pool, lpBalance);
+
+
+      pair.transfer(pool, lpBalance);
+      pair.burn(address(this));
+
+ 
     }
 }
