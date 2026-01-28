@@ -4,6 +4,7 @@ pragma solidity ^0.8.13;
 import {Test, console2} from "forge-std/Test.sol";
 import {MyMevBot} from "../src/MyMevBot.sol";
 import "../src/interfaces/IUniswapV2Pair.sol";
+import "src/interfaces/IERC20.sol";
 
 contract ArbitrageTest is Test {
     MyMevBot public myMevBot;
@@ -17,12 +18,18 @@ contract ArbitrageTest is Test {
     address public flashLenderPool = 0x88e6A0c2dDD26FEEb64F039a2c41296FcB3f5640;
 
     function setUp() public {
-        vm.rollFork(20055371);
+        vm.createSelectFork("https://eth-mainnet.g.alchemy.com/v2/r1VHZ886XuNYndhbw_FF6");
 
         myMevBot = new MyMevBot(flashLenderPool, weth, usdc, usdt, router);
 
         // Deal 0xBeeb with some tokens
-        deal(usdt, address(0xBeeb), 3_000_000e6);
+        address usdtWhale = 0x5754284f345afc66a98fbB0a0Afe71e0F007B949; // Tether Treasury
+       
+       vm.prank(usdtWhale);
+   (bool success, ) = usdt.call(abi.encodeWithSignature("transfer(address,uint256)", address(0xBeeb), 3_000_000e6));
+    require(success, "USDT transfer failed");
+
+       //   deal(usdt, address(0xBeeb), 3_000_000e6);
         deal(weth, address(0xBeeb), 10 ether);
 
         vm.startPrank(address(0xBeeb));
@@ -39,7 +46,7 @@ contract ArbitrageTest is Test {
         myMevBot.performArbitrage();
 
         uint256 puzzleBal = IUniswapV2Pair(usdc).balanceOf(address(myMevBot));
-
+        console2.log("gain :", puzzleBal);
         require(puzzleBal > 0, "Arbitrage Failed.");
     }
 }

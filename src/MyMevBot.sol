@@ -30,12 +30,60 @@ contract MyMevBot {
 
     function performArbitrage() public {
         // your code here
+
+        uint256 UsdcToBorrow = 1000 * 1e6;
+
+        address[] memory path = new address[](2);
+        path[0] = address(usdc);
+        path[1] = address(weth);
+
+        bytes memory data = abi.encode(UsdcToBorrow);
+
+        flashLenderPool.flash(address(this), UsdcToBorrow, 0, data);
+
+        //  IERC20(usdc).approve(address(router), UsdcToBorrow);
+        //  bytes memory data =  abi.encode(router.swapExactTokensForTokens(UsdcToBorrow, 0,path,address(this), block.timestamp ));
     }
 
     function uniswapV3FlashCallback(uint256 _fee0, uint256, bytes calldata data) external {
         callMeCallMe();
 
         // your code start here
+
+        uint256 borrowedAmount = abi.decode(data, (uint256));
+        uint256 repayAmount = borrowedAmount + _fee0;
+
+        // starter
+        usdc.approve(address(router), borrowedAmount);
+
+        // swap usdc to weth
+        address[] memory path1 = new address[](2);
+        path1[0] = address(usdc);
+        path1[1] = address(weth);
+        router.swapExactTokensForTokens(borrowedAmount, 0, path1, address(this), block.timestamp);
+
+        // we swap to weth now let check weth bal
+        uint256 wethBal = weth.balanceOf(address(this));
+        weth.approve(address(router), wethBal);
+
+        //swap weth to usdt
+        address[] memory path2 = new address[](2);
+        path2[0] = address(weth);
+        path2[1] = address(usdt);
+        router.swapExactTokensForTokens(wethBal, 0, path2, address(this), block.timestamp);
+
+        // now let check usdt balance
+
+        uint256 usdtBal = usdt.balanceOf(address(this));
+        usdt.approve(address(router), usdtBal);
+
+        address[] memory path3 = new address[](2);
+        path3[0] = address(usdt);
+        path3[1] = address(usdc);
+
+        router.swapExactTokensForTokens(usdtBal, 0, path3, address(this), block.timestamp);
+
+        usdc.transfer(address(flashLenderPool), repayAmount);
     }
 
     function callMeCallMe() private {
