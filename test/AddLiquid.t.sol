@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.13;
 
-import {Test} from "forge-std/Test.sol";
+import {Test, console} from "forge-std/Test.sol";
 import {AddLiquid} from "../src/AddLiquid.sol";
 import "../src/interfaces/IUniswapV2Pair.sol";
 import "../src/interfaces/IERC20.sol";
@@ -47,6 +47,8 @@ contract AddLiquidTest is Test {
         uint256 wethUsed = (usdcUsed * reserve1) / reserve0;
 
         uint256 expectedLp = _min((usdcUsed * totalSupply) / reserve0, (wethUsed * totalSupply) / reserve1);
+        console.log("lp bal:", lpBal);
+        console.log("expected lp", expectedLp);
 
         assert(lpBal >= expectedLp);
     }

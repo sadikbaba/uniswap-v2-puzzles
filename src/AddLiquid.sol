@@ -30,7 +30,7 @@ contract AddLiquid {
             usdcToSend = usdcBalance;
             wethToSend = wethOptimal;
         } else {
-            usdcToSend = 1 ether - (wethBalance * usdcReserve) / wethReserve;
+            usdcToSend = (wethBalance * usdcReserve) / wethReserve;
             wethToSend = wethBalance;
         }
 
@@ -38,6 +38,6 @@ contract AddLiquid {
         IERC20(weth).transfer(pool, wethToSend);
 
         pair.getReserves();
-        IUniswapV2Pair(pool).mint(msg.sender);
+        pair.mint(msg.sender);
     }
 }
