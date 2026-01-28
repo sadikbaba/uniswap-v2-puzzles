@@ -14,7 +14,6 @@ contract ExactSwapTest is Test {
     function setUp() public {
         vm.createSelectFork("https://eth-mainnet.g.alchemy.com/v2/r1VHZ886XuNYndhbw_FF6", 20055371);
 
-
         exactSwap = new ExactSwap();
 
         // transfers 1 WETH to exactSwap contract
@@ -34,6 +33,6 @@ contract ExactSwapTest is Test {
         uint256 puzzleBal = IUniswapV2Pair(usdc).balanceOf(address(exactSwap));
 
         require(puzzleBal / 1e6 == 1337, "Puzzle Balance Not 1337 USDC.");
-        require(d / 1e6 == 1337 , "Did Not Swap Exact Amount Of WETH.");
+        require(d / 1e6 == 1337, "Did Not Swap Exact Amount Of WETH.");
     }
 }

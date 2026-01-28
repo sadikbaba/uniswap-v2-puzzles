@@ -3,6 +3,8 @@ pragma solidity ^0.8.13;
 
 import "./interfaces/IERC20.sol";
 
+import "./interfaces/IUniswapV2Pair.sol";
+
 contract ExactSwapWithRouter {
     /**
      *  PERFORM AN EXACT SWAP WITH ROUTER EXERCISE
@@ -19,6 +21,21 @@ contract ExactSwapWithRouter {
 
     function performExactSwapWithRouter(address weth, address usdc, uint256 deadline) public {
         // your code start here
+
+        uint256 amountOut = 1337 * 1e6;
+
+        // uint256 wethAmount = IERC20(weth).balanceOf(address(this));
+
+        address[] memory path = new address[](2);
+        path[0] = weth;
+        path[1] = usdc;
+
+        uint256[] memory amounts = IUniswapV2Router(router).getAmountsIn(amountOut, path);
+        uint256 amountIn = amounts[0];
+
+        IERC20(weth).approve(router, amountIn);
+
+        IUniswapV2Router(router).swapExactTokensForTokens(amountIn, 0, path, address(this), deadline);
     }
 }
 
@@ -29,7 +46,12 @@ interface IUniswapV2Router {
      *     path: an array of token addresses. In our case, WETH and USDC.
      *     to: recipient address to receive the liquidity tokens.
      *     deadline: timestamp after which the transaction will revert.
+     *
+     *
+     *
      */
+    function getAmountsIn(uint256 amountOut, address[] calldata path) external view returns (uint256[] memory amounts);
+
     function swapExactTokensForTokens(
         uint256 amountIn,
         uint256 amountOutMin,
