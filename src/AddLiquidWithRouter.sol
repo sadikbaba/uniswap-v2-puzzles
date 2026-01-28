@@ -20,15 +20,16 @@ contract AddLiquidWithRouter {
     }
 
     function addLiquidityWithRouter(address usdcAddress, uint256 deadline) public {
-
         // your code start here
         uint256 usdcAmount = IERC20(usdcAddress).balanceOf(address(this));
         IERC20(usdcAddress).approve(router, usdcAmount);
 
-        uint256 ethbal  =      address(this).balance;
+        uint256 ethbal = address(this).balance;
         uint256 amountTokenMin = 1;
         uint256 amountETHMin = 1;
-        IUniswapV2Router(router).addLiquidityETH{value: ethbal}(usdcAddress, usdcAmount, amountTokenMin, amountETHMin,msg.sender, deadline );
+        IUniswapV2Router(router).addLiquidityETH{value: ethbal}(
+            usdcAddress, usdcAmount, amountTokenMin, amountETHMin, msg.sender, deadline
+        );
     }
 
     receive() external payable {}

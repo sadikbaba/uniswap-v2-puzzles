@@ -4,8 +4,13 @@ pragma solidity ^0.8.13;
 import {Test, console2} from "forge-std/Test.sol";
 import {BurnLiquidWithRouter} from "../src/BurnLiquidWithRouter.sol";
 import "../src/interfaces/IUniswapV2Pair.sol";
+import "src/interfaces/IERC20.sol";
+import {AddLiquidWithRouter} from "src/AddLiquidWithRouter.sol";
+import {AddLiquid} from "src/AddLiquid.sol";
 
 contract BurnLiquidWithRouterTest is Test {
+    AddLiquidWithRouter public addlpwithrouter;
+    AddLiquid public addlp;
     BurnLiquidWithRouter public burnLiquidWithRouterAddress;
 
     address public weth = 0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2;
@@ -14,6 +19,10 @@ contract BurnLiquidWithRouterTest is Test {
     address public router = 0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D;
 
     function setUp() public {
+        vm.createSelectFork("https://eth-mainnet.g.alchemy.com/v2/r1VHZ886XuNYndhbw_FF6");
+
+        addlpwithrouter = new AddLiquidWithRouter(router);
+        addlp = new AddLiquid();
         vm.rollFork(20055371);
 
         burnLiquidWithRouterAddress = new BurnLiquidWithRouter(router);
@@ -24,12 +33,14 @@ contract BurnLiquidWithRouterTest is Test {
 
     function test_BurnLiquidityWithRouter() public {
         uint256 deadline = block.timestamp + 1 minutes;
+        (uint256 reserve0, uint256 reserve1,) = IUniswapV2Pair(pool).getReserves();
 
-        vm.prank(address(0xb0b));
+        vm.startPrank(address(0xb0b));
+        addlpwithrouter.addLiquidityWithRouter(usdc, block.timestamp);
+        addlp.addLiquidity(weth, usdc, pool, reserve0, reserve1);
         burnLiquidWithRouterAddress.burnLiquidityWithRouter(pool, usdc, weth, deadline);
-
-        uint256 usdcBal = IUniswapV2Pair(usdc).balanceOf(address(burnLiquidWithRouterAddress));
-        uint256 wethBal = IUniswapV2Pair(weth).balanceOf(address(burnLiquidWithRouterAddress));
+        uint256 usdcBal = IERC20(usdc).balanceOf(address(burnLiquidWithRouterAddress));
+        uint256 wethBal = IERC20(weth).balanceOf(address(burnLiquidWithRouterAddress));
 
         assertEq(usdcBal, 1432558576085, "Incorrect USDC tokens received");
         assertEq(wethBal, 388231892770818155977, "Incorrect WETH tokens received");

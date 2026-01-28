@@ -14,19 +14,13 @@ contract BurnLiquid {
      *
      */
     function burnLiquidity(address pool) public {
-      
-      IUniswapV2Pair pair = IUniswapV2Pair(pool);
+        IUniswapV2Pair pair = IUniswapV2Pair(pool);
 
+        uint256 lpBalance = pair.balanceOf(address(this));
 
-      uint256 lpBalance = pair.balanceOf(address(this));
+        pair.approve(pool, lpBalance);
 
-
-      pair.approve(pool, lpBalance);
-
-
-      pair.transfer(pool, lpBalance);
-      pair.burn(address(this));
-
- 
+        pair.transfer(pool, lpBalance);
+        pair.burn(address(this));
     }
 }
