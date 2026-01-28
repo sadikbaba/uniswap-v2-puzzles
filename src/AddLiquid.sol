@@ -2,6 +2,7 @@
 pragma solidity ^0.8.13;
 
 import "./interfaces/IUniswapV2Pair.sol";
+import "./interfaces/IERC20.sol";
 
 contract AddLiquid {
     /**
@@ -16,10 +17,30 @@ contract AddLiquid {
         IUniswapV2Pair pair = IUniswapV2Pair(pool);
 
         // your code start here
+        uint256 usdcBalance = IERC20(usdc).balanceOf(address(this));
+        uint256 wethBalance = IERC20(weth).balanceOf(address(this));
 
+
+        uint256 wethOptimal =  (usdcBalance * wethReserve) / usdcReserve;
         // see available functions here: https://github.com/Uniswap/v2-core/blob/master/contracts/interfaces/IUniswapV2Pair.sol
+         
 
-        // pair.getReserves();
-        // pair.mint(...);
+        uint256 usdcToSend;
+        uint256 wethToSend;
+
+         if(wethOptimal <= wethBalance) {
+             usdcToSend = usdcBalance;
+             wethToSend = wethOptimal;
+         } else {
+            usdcToSend = (wethBalance * usdcReserve) / wethReserve;
+            wethToSend = wethBalance;
+         }
+
+
+         IERC20(usdc).transfer(pool, usdcToSend);
+         IERC20(weth).transfer(pool, wethToSend);
+
+        pair.getReserves();
+        IUniswapV2Pair(pool).mint(msg.sender);
     }
 }

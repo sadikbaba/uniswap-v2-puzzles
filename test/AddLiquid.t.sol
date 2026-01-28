@@ -4,33 +4,48 @@ pragma solidity ^0.8.13;
 import {Test, console2} from "forge-std/Test.sol";
 import {AddLiquid} from "../src/AddLiquid.sol";
 import "../src/interfaces/IUniswapV2Pair.sol";
+import "../src/interfaces/IERC20.sol";
+import "./mock/mockERC20.sol";
+import {mockUniswapV2Pair} from "./mock/mokcUniswapV2Pair.sol";
+
+
+
 
 contract AddLiquidTest is Test {
     AddLiquid public addLiquid;
-    address public weth = 0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2;
-    address public usdc = 0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48;
-    address public pool = 0xB4e16d0168e52d35CaCD2c6185b44281Ec28C9Dc;
+
+    MockERC20  public weth;
+    MockERC20 public usdc;
+
+mockUniswapV2Pair public pool ;
 
     function setUp() public {
+
+        vm.createSelectFork("https://eth.llamarpc.com");
+
+        usdc = new MockERC20();
+        weth = new MockERC20();
+        pool = new mockUniswapV2Pair();
+ 
         addLiquid = new AddLiquid();
 
         // transfers 1 WETH to addLiquid contract
-        deal(weth, address(addLiquid), 1 ether);
+        deal(address(weth), address(addLiquid), 1 ether);
 
         // transfers 1000 USDC to addLiquid contract
-        deal(usdc, address(addLiquid), 1000e6);
+        deal(address(usdc), address(addLiquid), 1000e6);
     }
 
     function test_AddLiquidity() public {
-        (uint256 reserve0, uint256 reserve1,) = IUniswapV2Pair(pool).getReserves();
-        uint256 _totalSupply = IUniswapV2Pair(pool).totalSupply();
+        (uint256 reserve0, uint256 reserve1,) = pool.getReserves();
+        uint256 _totalSupply = mockUniswapV2Pair(pool).totalSupply();
 
         vm.prank(address(0xb0b));
-        addLiquid.addLiquidity(usdc, weth, pool, reserve0, reserve1);
+        addLiquid.addLiquidity(address(usdc), address(weth), address(pool), reserve0, reserve1);
 
-        uint256 foo = (1000e6) - (IUniswapV2Pair(usdc).balanceOf(address(addLiquid)));
+        uint256 foo = (1000e6) - (mockUniswapV2Pair(address(usdc)).balanceOf(address(addLiquid)));
 
-        uint256 puzzleBal = IUniswapV2Pair(pool).balanceOf(address(0xb0b));
+        uint256 puzzleBal = mockUniswapV2Pair(pool).balanceOf(address(0xb0b));
 
         uint256 bar = (foo * reserve1) / reserve0;
 
