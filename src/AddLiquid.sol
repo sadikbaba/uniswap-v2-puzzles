@@ -20,25 +20,22 @@ contract AddLiquid {
         uint256 usdcBalance = IERC20(usdc).balanceOf(address(this));
         uint256 wethBalance = IERC20(weth).balanceOf(address(this));
 
-
-        uint256 wethOptimal =  (usdcBalance * wethReserve) / usdcReserve;
+        uint256 wethOptimal = (usdcBalance * wethReserve) / usdcReserve;
         // see available functions here: https://github.com/Uniswap/v2-core/blob/master/contracts/interfaces/IUniswapV2Pair.sol
-         
 
         uint256 usdcToSend;
         uint256 wethToSend;
 
-         if(wethOptimal <= wethBalance) {
-             usdcToSend = usdcBalance;
-             wethToSend = wethOptimal;
-         } else {
-            usdcToSend = (wethBalance * usdcReserve) / wethReserve;
+        if (wethOptimal <= wethBalance) {
+            usdcToSend = usdcBalance;
+            wethToSend = wethOptimal;
+        } else {
+            usdcToSend = 1 ether - (wethBalance * usdcReserve) / wethReserve;
             wethToSend = wethBalance;
-         }
+        }
 
-
-         IERC20(usdc).transfer(pool, usdcToSend);
-         IERC20(weth).transfer(pool, wethToSend);
+        IERC20(usdc).transfer(pool, usdcToSend);
+        IERC20(weth).transfer(pool, wethToSend);
 
         pair.getReserves();
         IUniswapV2Pair(pool).mint(msg.sender);

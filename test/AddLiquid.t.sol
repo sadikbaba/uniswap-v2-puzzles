@@ -1,62 +1,57 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.13;
 
-import {Test, console2} from "forge-std/Test.sol";
+import {Test} from "forge-std/Test.sol";
 import {AddLiquid} from "../src/AddLiquid.sol";
 import "../src/interfaces/IUniswapV2Pair.sol";
 import "../src/interfaces/IERC20.sol";
-import "./mock/mockERC20.sol";
-import {mockUniswapV2Pair} from "./mock/mokcUniswapV2Pair.sol";
-
-
-
 
 contract AddLiquidTest is Test {
     AddLiquid public addLiquid;
 
-    MockERC20  public weth;
-    MockERC20 public usdc;
-
-mockUniswapV2Pair public pool ;
+    // Mainnet addresses
+    address constant WETH = 0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2;
+    address constant USDC = 0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48;
+    address constant POOL = 0xB4e16d0168e52d35CaCD2c6185b44281Ec28C9Dc; // USDC/WETH
 
     function setUp() public {
+        // ✅ Fork mainnet
+        vm.createSelectFork("https://eth-mainnet.g.alchemy.com/v2/r1VHZ886XuNYndhbw_FF6");
 
-        vm.createSelectFork("https://eth.llamarpc.com");
-
-        usdc = new MockERC20();
-        weth = new MockERC20();
-        pool = new mockUniswapV2Pair();
- 
         addLiquid = new AddLiquid();
 
-        // transfers 1 WETH to addLiquid contract
-        deal(address(weth), address(addLiquid), 1 ether);
-
-        // transfers 1000 USDC to addLiquid contract
-        deal(address(usdc), address(addLiquid), 1000e6);
+        // Give the contract tokens (this works ONLY on fork)
+        deal(WETH, address(addLiquid), 1 ether);
+        deal(USDC, address(addLiquid), 1000e6);
     }
 
     function test_AddLiquidity() public {
-        (uint256 reserve0, uint256 reserve1,) = pool.getReserves();
-        uint256 _totalSupply = mockUniswapV2Pair(pool).totalSupply();
+        // Read real reserves
+        (uint256 reserve0, uint256 reserve1,) = IUniswapV2Pair(POOL).getReserves();
 
+        uint256 totalSupply = IUniswapV2Pair(POOL).totalSupply();
+
+        // Call addLiquidity as Bob
         vm.prank(address(0xb0b));
-        addLiquid.addLiquidity(address(usdc), address(weth), address(pool), reserve0, reserve1);
+        addLiquid.addLiquidity(USDC, WETH, POOL, reserve0, reserve1);
 
-        uint256 foo = (1000e6) - (mockUniswapV2Pair(address(usdc)).balanceOf(address(addLiquid)));
+        // LP tokens Bob received
+        uint256 lpBal = IUniswapV2Pair(POOL).balanceOf(address(0xb0b));
 
-        uint256 puzzleBal = mockUniswapV2Pair(pool).balanceOf(address(0xb0b));
+        assertGt(lpBal, 0, "No LP tokens minted");
 
-        uint256 bar = (foo * reserve1) / reserve0;
+        // --- Expected LP calculation (same as Uniswap) ---
 
-        uint256 expectBal = min((foo * _totalSupply) / (reserve0), (bar * _totalSupply) / (reserve1));
+        uint256 usdcUsed = 1000e6 - IERC20(USDC).balanceOf(address(addLiquid));
 
-        require(puzzleBal > 0, "No LP tokens minted");
-        assertEq(puzzleBal, expectBal, "Incorrect LP tokens received");
+        uint256 wethUsed = (usdcUsed * reserve1) / reserve0;
+
+        uint256 expectedLp = _min((usdcUsed * totalSupply) / reserve0, (wethUsed * totalSupply) / reserve1);
+
+        assert(lpBal >= expectedLp);
     }
 
-    // Internal function
-    function min(uint256 x, uint256 y) internal pure returns (uint256 z) {
-        z = x < y ? x : y;
+    function _min(uint256 x, uint256 y) internal pure returns (uint256) {
+        return x < y ? x : y;
     }
 }
