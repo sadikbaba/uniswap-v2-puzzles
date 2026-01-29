@@ -16,22 +16,18 @@ contract SimpleSwap {
     function performSwap(address pool, address weth, address usdc) public {
         /**
          *     swap(uint256 amount0Out, uint256 amount1Out, address to, bytes calldata data);
-         *
          *     amount0Out: the amount of USDC to receive from swap.
          *     amount1Out: the amount of WETH to receive from swap.
          *     to: recipient address to receive the USDC tokens.
          *     data: leave it empty.
          */
-
         // your code start here
 
         IUniswapV2Pair pair = IUniswapV2Pair(pool);
 
         uint256 wethbal = IERC20(weth).balanceOf(address(this));
         IERC20(weth).transfer(pool, wethbal);
-
         uint256 amount0Out = 50e6;
-
         pair.swap(amount0Out, 0, address(this), "");
     }
 }
