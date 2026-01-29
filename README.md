@@ -18,7 +18,7 @@ to get `your_mainnet_rpc_url`.
 $ forge test --fork-url <your_mainnet_rpc_url> --match-path test/<test_filename> 
 ```
 
-### Test Your RPC with HelloWorld Puzzle
+#### Test Your RPC with HelloWorld Puzzle
 
 Run the following command:
 ```shell
