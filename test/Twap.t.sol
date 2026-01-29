@@ -18,6 +18,8 @@ contract TwapTest is Test {
     uint224 oneDayTwap;
 
     function setUp() public {
+        vm.createSelectFork("https://eth-mainnet.g.alchemy.com/v2/r1VHZ886XuNYndhbw_FF6");
+
         twap = new Twap(pool);
 
         //**       ONE HOUR TWAP       **//
